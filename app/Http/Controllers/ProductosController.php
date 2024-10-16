@@ -16,9 +16,30 @@ class ProductosController extends Controller
      * Display a listing of the resource.
      * @return \Illuminate\Http\Resources\JSON\AnonymousResourceCollection
      */
-    public function index(){
-        return ProductoResource::collection(Producto::paginate(10));
+    public function index(Request $request) {
+        $query = Producto::query();
+
+        if ($request->has('name') || $request->has('category') || $request->has('espacio')) {
+            if ($request->has('name')) {
+                $query->where('name', 'like', '%' . $request->name . '%');
+            }
+            if ($request->has('category')) {
+                $query->where('category', 'like', '%' . $request->category . '%');
+            }
+            if ($request->has('espacio')) {
+                $query->where('espacio', 'like', '%' . $request->espacio . '%');
+            }
+        }
+    
+        $productos = $query->paginate(16);
+        if ($productos->isEmpty()) {
+            return response()->json([
+                'message' => 'No se encontraron productos que coincidan con los criterios de búsqueda',
+            ], 404);
+        }
+        return ProductoResource::collection($productos);
     }
+
 
     /**
      * Store a newly created resource in storage.

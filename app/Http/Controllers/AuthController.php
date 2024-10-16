@@ -20,7 +20,7 @@ class AuthController extends Controller {
         try {
             $token = JWTAuth::attempt($credentials);
             if ($token) {
-                $response = response()->json(['message' => 'Logged in successfully'])->cookie('token', $token, 60, '/', null, true, true);
+                $response = response()->json(['message' => 'Logged in successfully'])->cookie('token', $token, 0, '/', null, true, true);
             } else {
                 $response = response()->json(['error' => 'Credentials invalid'], 401);
             }
@@ -64,6 +64,16 @@ class AuthController extends Controller {
             }
         } catch(JWTException $e) {
             $response = response()->json(['error' => 'Logout failed'], 500);
+        }
+        return $response;
+    }
+
+    public function refreshToken() {
+        try {
+            $refreshedToken = JWTAuth::refresh();
+            $response = response()->json(['message' => 'Token refreshed successfully'])->cookie('token', $refreshedToken, 0, '/', null, true, true);
+        } catch (\Exception $e) {
+            $response = response()->json(['error' => 'Token refresh failed'], 500);
         }
         return $response;
     }
