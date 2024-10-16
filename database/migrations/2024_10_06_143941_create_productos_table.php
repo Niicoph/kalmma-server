@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('description');
-            $table->integer('SKU');
+            $table->integer('SKU')->unique();
             $table->string('espacio');
             $table->string('dimensiones');
             $table->foreignId('categoria_id')->constrained('categorias');
