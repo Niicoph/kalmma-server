@@ -44,10 +44,17 @@ class ProfileController extends Controller {
     public function update(string $id, Request $request) {
         $validatedData = $request->validate([
             'name' => 'sometimes|string|min:3|max:40',
-            'email' => 'sometimes|string|email|unique:users,email,'.$id, 
+            'email' => 'sometimes|string|email|unique:users,email,' . $id,
             'password' => 'sometimes|string|min:6|max:20',
+            'avatar' => 'sometimes|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
-
+    
+        if (auth()->user()->id != $id) {
+            return response()->json([
+                'message' => 'No tienes permiso para actualizar este perfil',
+            ], 403);
+        }
+    
         $user = User::find($id);
     
         if (!$user) {
@@ -55,23 +62,32 @@ class ProfileController extends Controller {
                 'message' => 'Usuario no encontrado',
             ], 404);
         }
-
         $updatedFields = [];
         if (array_key_exists('name', $validatedData)) {
             $updatedFields[] = 'nombre';
         }
+    
         if (array_key_exists('email', $validatedData)) {
             $updatedFields[] = 'email';
         }
+    
         if (array_key_exists('password', $validatedData)) {
-            $validatedData['password'] = bcrypt($validatedData['password']); 
+            $validatedData['password'] = bcrypt($validatedData['password']);
             $updatedFields[] = 'contraseña';
+        }
+    
+        if (array_key_exists('avatar', $validatedData)) {
+            $avatarName = hash('sha256', time() . $request->avatar->getClientOriginalName()) . '.' . $request->avatar->extension();
+            $request->avatar->storeAs('avatars', $avatarName); 
+            $validatedData['avatar'] = $avatarName;
+            $updatedFields[] = 'avatar';
         }
     
         if (!empty($updatedFields)) {
             try {
-                $user->update($validatedData);
-                $message = implode(', ', $updatedFields) . " Actualizado correctamente ";
+                $user->update($validatedData); 
+    
+                $message = implode(', ', $updatedFields) . " actualizado correctamente.";
                 return response()->json([
                     'message' => $message,
                     'perfil' => $user,
@@ -89,5 +105,6 @@ class ProfileController extends Controller {
             ], 400);
         }
     }
+    
     
 }

@@ -19,13 +19,12 @@ use App\Http\Controllers\UsuariosController;
 |
 */
 
-Route::post('/login', [AuthController::class, 'login']);
+Route::middleware('throttle:global')->group(function () {
+    Route::post('/login', [AuthController::class, 'login']);
+});
 /* Route::post('/register', [AuthController::class, 'register']); */ // eliminar en producción
 
 
-
-// Public endpoints 
-Route::post('/login', [AuthController::class, 'login']);
 Route::get('/productos', [ProductosController::class, 'index']);
 Route::get('/productos/{id}', [ProductosController::class, 'show']);
 Route::get('/preguntas', [PreguntasController::class, 'index']);
