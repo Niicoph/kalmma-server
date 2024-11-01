@@ -19,12 +19,13 @@ class JwtAuthMiddleware
      */
     public function handle(Request $request, Closure $next): Response {
         try {
-            if (!$request->hasCookie('token')) {
+            if (!$request->hasCookie('sessionId')) {
                 return response()->json(['error' => 'Token not provided. Please log in to access this resource.'], 401); 
             }
 
-            $token = $request->cookie('token'); 
-            $user = JWTAuth::setToken($token)->authenticate(); 
+            $token = $request->cookie('sessionId'); 
+            $decodedToken = base64_decode($token);
+            $user = JWTAuth::setToken($decodedToken)->authenticate(); 
 
             if (!$user) {
                 return response()->json(['error' => 'Token is invalid. Please log in again.'], 401); 

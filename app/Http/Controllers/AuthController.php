@@ -3,13 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Http\Request;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Exceptions\JWTException;
 
-class AuthController extends Controller {    
+class AuthController extends Controller {
+    
     /**
      * Handles the login request
      * @return \Illuminate\Http\JsonResponse $response
@@ -20,7 +22,9 @@ class AuthController extends Controller {
         try {
             $token = JWTAuth::attempt($credentials);
             if ($token) {
-                $response = response()->json(['message' => 'Logged in successfully'])->cookie('token', $token, 0, '/', null, true, true);
+                $encodedToken = base64_encode($token); 
+                $response = response()->json(['message' => 'Logged in successfully'])
+                    ->cookie('sessionId', $encodedToken, 0, '/', null, true, true);
             } else {
                 $response = response()->json(['error' => 'Credentials invalid'], 401);
             }
@@ -29,6 +33,7 @@ class AuthController extends Controller {
         }
         return $response;
     }
+    
     /**
      * Handles the registration request
      * @param \App\Http\Requests\RegisterRequest $request
@@ -43,26 +48,27 @@ class AuthController extends Controller {
                 'password' => Hash::make($credentials['password']),
             ]);
 
-            $response = response()->json([
-                'message' => 'User registered successfully'], 201);
+            $response = response()->json(['message' => 'User registered successfully'], 201);
         } catch (\Exception $e) {
             $response = response()->json(['error' => 'Registration failed'], 500);
         }
         return $response;
     }
+    
     /**
      * Handles the logout request
+     * @return \Illuminate\Http\JsonResponse $response
      */
     public function logout() {
         try {
             $user = JWTAuth::parseToken()->authenticate();
             if ($user) {
                 JWTAuth::invalidate(JWTAuth::getToken());
-                $response = response()->json(['message' => 'Logged out successfully'])->cookie('token', '', 1, '/', null, true, true);
+                $response = response()->json(['message' => 'Logged out successfully'])->cookie('sessionId', '', 1, '/', null, true, true);
             } else {
                 $response = response()->json(['error' => 'Unauthorized'], 401);
             }
-        } catch(JWTException $e) {
+        } catch (JWTException $e) {
             $response = response()->json(['error' => 'Logout failed'], 500);
         }
         return $response;
@@ -71,12 +77,30 @@ class AuthController extends Controller {
     public function refreshToken() {
         try {
             $refreshedToken = JWTAuth::refresh();
-            $response = response()->json(['message' => 'Token refreshed successfully'])->cookie('token', $refreshedToken, 0, '/', null, true, true);
+            $encodedToken = base64_encode($refreshedToken); 
+            $response = response()->json(['message' => 'Token refreshed successfully'])
+                ->cookie('sessionId', $encodedToken, 0, '/', null, true, true);
         } catch (\Exception $e) {
             $response = response()->json(['error' => 'Token refresh failed'], 500);
         }
         return $response;
     }
-     
 
+    public function isAuth(Request $request) {
+        try {
+            $cookie = $request->cookie('sessionId');
+            if (!$cookie) {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            } else {
+                $decodedToken = base64_decode($cookie);
+                $auth = JWTAuth::setToken($decodedToken)->authenticate();
+                return $auth 
+                    ? response()->json(['message' => 'Authenticated']) 
+                    : response()->json(['error' => 'Unauthorized'], 401);
+            }
+        } catch (JWTException $e) {
+            return response()->json(['error' => 'Token error'], 401);
+        }
+    }
 }
+

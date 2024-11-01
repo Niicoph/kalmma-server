@@ -17,31 +17,40 @@ class ProductosController extends Controller
 
     /**
      * Display a listing of the resource.
-     * @return \Illuminate\Http\Resources\JSON\AnonymousResourceCollection
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
-    public function index(Request $request) {
+    public function index(Request $request)
+    {
+        $espacio = $request->query('espacio');
+        $category = $request->query('categoria_id');
+        $name = $request->query('name');
+
         $query = Producto::query();
 
-        if ($request->has('name') || $request->has('category') || $request->has('espacio')) {
-            if ($request->has('name')) {
-                $query->where('name', 'like', '%' . $request->name . '%');
+        if (empty($espacio) && empty($category) && empty($name)) {
+            $productos = $query->paginate(16);
+        } else {
+            if ($espacio) {
+                $query->where('espacio', $espacio);
             }
-            if ($request->has('category')) {
-                $query->where('category', 'like', '%' . $request->category . '%');
+            if ($category) {
+                $query->where('categoria_id', $category);
             }
-            if ($request->has('espacio')) {
-                $query->where('espacio', 'like', '%' . $request->espacio . '%');
+            if ($name) {
+                $query->where('name', 'like', '%' . $name . '%');
+            }
+
+            $productos = $query->paginate(16);
+            if ($productos->isEmpty()) {
+                return response()->json([
+                    'message' => 'No se han encontrado productos que coincidan con tu selección.'
+                ], 404);
             }
         }
-    
-        $productos = $query->paginate(16);
-        if ($productos->isEmpty()) {
-            return response()->json([
-                'message' => 'No se encontraron productos que coincidan con los criterios de búsqueda',
-            ], 404);
-        }
+
         return ProductoResource::collection($productos);
     }
+
 
 
     /**
@@ -49,14 +58,15 @@ class ProductosController extends Controller
      * @param \App\Http\Requests\ProductoRequest $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function store(ProductoRequest $request): JsonResponse {
+    public function store(ProductoRequest $request): JsonResponse
+    {
         try {
             $validatedData = $request->validated();
             $product = Producto::create($validatedData);
-    
+
             $image_url_name = null;
             $imagenes = [];
-    
+
             if ($request->hasFile('image_url')) {
                 $image_url = $request->file('image_url');
                 $image_url_name = hash('sha256', $product->id . $image_url->getClientOriginalName()) . '.' . $image_url->getClientOriginalExtension();
@@ -66,11 +76,11 @@ class ProductosController extends Controller
 
             if ($request->hasFile('images')) {
                 $images = $request->file('images');
-    
+
                 foreach ($images as $image) {
                     $image_name = hash('sha256', $product->id . $image->getClientOriginalName()) . '.' . $image->getClientOriginalExtension();
                     $image->storeAs('public/productos', $image_name);
-    
+
                     $productoImagen = ProductoImagen::create([
                         'producto_id' => $product->id,
                         'image_detailed_url' => $image_name,
@@ -90,22 +100,22 @@ class ProductosController extends Controller
             ], 500);
         }
     }
-    
-    
+
+
 
     /**
      * Display the specified resource.
      * @param string $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function show(string $id){
+    public function show(string $id)
+    {
         try {
             $product = Producto::find($id);
             return response()->json([
                 'message' => 'Producto obtenido correctamente',
                 'producto' => new ProductoResource($product),
             ], 200);
-            
         } catch (Exception $e) {
             return response()->json([
                 'message' => 'Error inesperado al obtener el producto',
@@ -120,20 +130,21 @@ class ProductosController extends Controller
      * @param string $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(ProductoRequest $request, string $id): JsonResponse {
+    public function update(ProductoRequest $request, string $id): JsonResponse
+    {
         $validatedData = $request->validated();
-    
+
         $product = Producto::find($id);
-        
+
         if (!$product) {
             return response()->json([
                 'message' => 'Producto no encontrado',
             ], 404);
         }
-    
+
         try {
             $product->update($validatedData);
-    
+
             $imagenes = [];
             if ($request->hasFile('image_url')) {
                 if ($product->image_url) {
@@ -147,7 +158,7 @@ class ProductosController extends Controller
             if ($request->hasFile('images')) {
                 $images = $request->file('images');
                 ProductoImagen::where('producto_id', $product->id)->delete();
-    
+
                 foreach ($images as $image) {
                     $image_name = hash('sha256', $product->id . $image->getClientOriginalName()) . '.' . $image->getClientOriginalExtension();
                     $image->storeAs('public/productos', $image_name);
@@ -163,7 +174,6 @@ class ProductosController extends Controller
                 'producto' => new ProductoResource($product),
                 'imagenes_del_producto' => $imagenes,
             ], 200);
-    
         } catch (Exception $e) {
             return response()->json([
                 'message' => 'Error inesperado al actualizar el producto',
@@ -171,14 +181,15 @@ class ProductosController extends Controller
             ], 500);
         }
     }
-    
+
 
     /**
      * Remove the specified resource from storage.
      * @param string $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy(string $id){
+    public function destroy(string $id)
+    {
         $product = Producto::find($id);
         if (!$product) {
             return response()->json([

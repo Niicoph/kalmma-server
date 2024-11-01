@@ -7,6 +7,9 @@ use App\Http\Controllers\ProductosController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PreguntasController;
 use App\Http\Controllers\UsuariosController;
+use App\Http\Controllers\CategoriaController;
+use App\Http\Controllers\SliderDesktopController;
+use App\Http\Controllers\SliderMobileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,16 +22,19 @@ use App\Http\Controllers\UsuariosController;
 |
 */
 
-Route::middleware('throttle:global')->group(function () {
-    Route::post('/login', [AuthController::class, 'login']);
-});
-/* Route::post('/register', [AuthController::class, 'register']); */ // eliminar en producción
+// Public Routes
 
+Route::middleware('throttle:global')->group(function () {
+    Route::post('/auth/login', [AuthController::class, 'login']);
+    // Route::post('/auth/register', [AuthController::class, 'register']); // eliminar en producción
+});
 
 Route::get('/productos', [ProductosController::class, 'index']);
 Route::get('/productos/{id}', [ProductosController::class, 'show']);
 Route::get('/preguntas', [PreguntasController::class, 'index']);
-
+Route::post('/auth/validate', [AuthController::class, 'isAuth']);
+Route::get('/slider/desktop', [SliderDesktopController::class, 'index']);
+Route::get('/slider/mobile', [SliderMobileController::class, 'index']);
 
 // Protected endpoints
 Route::middleware('auth.jwt')->group(function () {
@@ -41,6 +47,14 @@ Route::middleware('auth.jwt')->group(function () {
     Route::post('/preguntas', [PreguntasController::class, 'store']);
     Route::put('/preguntas/{id}', [PreguntasController::class, 'update']);
     Route::delete('/preguntas/{id}', [PreguntasController::class, 'destroy']);
+
+    // categorias
+    Route::get('/categorias', [CategoriaController::class, 'index']);
+    Route::post('/categorias', [CategoriaController::class, 'store']);
+
+    // Slider 
+    Route::post('/slider/desktop', [SliderDesktopController::class, 'store']);
+    Route::post('/slider/mobile', [SliderMobileController::class, 'store']);
     
     // usuarios
     Route::get('/usuarios', [UsuariosController::class, 'index']);
@@ -48,14 +62,11 @@ Route::middleware('auth.jwt')->group(function () {
         ->middleware('can:createUser,App\Models\User');
     Route::delete('/usuarios/{id}', [UsuariosController::class, 'destroy'])
         ->middleware('can:deleteUser,App\Models\User');
-});
 
-
-Route::middleware('auth.jwt')->group( function() {
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::post('/refresh', [AuthController::class, 'refreshToken']);
-    // Relacionados a perfil
+    // perfil y autenticación
     Route::get('/perfil', [ProfileController::class, 'show']);
     Route::put('/perfil/{id}', [ProfileController::class, 'update']);
-});
+    Route::post('/auth/logout', [AuthController::class, 'logout']);
+    Route::post('/auth/refresh', [AuthController::class, 'refreshToken']);
 
+});

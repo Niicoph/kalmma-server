@@ -11,8 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('productos', function (Blueprint $table) {
-            $table->string('image_url')->nullable();
+        Schema::create('slider_mobile_imagenes', function (Blueprint $table) {
+            $table->id();
+            $table->string('url');
+            $table->timestamps();
         });
     }
 
@@ -21,8 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('productos', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('slider_mobile_imagenes');
     }
 };
