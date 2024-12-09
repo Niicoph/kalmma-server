@@ -10,6 +10,7 @@ use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\SliderDesktopController;
 use App\Http\Controllers\SliderMobileController;
+use App\Http\Controllers\ImageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,15 +25,20 @@ use App\Http\Controllers\SliderMobileController;
 
 // Public Routes
 
-Route::middleware('throttle:global')->group(function () {
+Route::middleware('throttle:20,10')->group(function () {
+    Route::post('/auth/validate', [AuthController::class, 'isAuth']);
     Route::post('/auth/login', [AuthController::class, 'login']);
     // Route::post('/auth/register', [AuthController::class, 'register']); // eliminar en producción
 });
 
+Route::get('/categorias', [CategoriaController::class, 'index']);
 Route::get('/productos', [ProductosController::class, 'index']);
+// ->middleware('cache.products');
+Route::get('/images/{type}/{filename}', [ImageController::class, 'showImage']);
+Route::get('/productos/images/{id}', [ImageController::class, 'showImageProducto']);
+
 Route::get('/productos/{id}', [ProductosController::class, 'show']);
 Route::get('/preguntas', [PreguntasController::class, 'index']);
-Route::post('/auth/validate', [AuthController::class, 'isAuth']);
 Route::get('/slider/desktop', [SliderDesktopController::class, 'index']);
 Route::get('/slider/mobile', [SliderMobileController::class, 'index']);
 
@@ -49,7 +55,6 @@ Route::middleware('auth.jwt')->group(function () {
     Route::delete('/preguntas/{id}', [PreguntasController::class, 'destroy']);
 
     // categorias
-    Route::get('/categorias', [CategoriaController::class, 'index']);
     Route::post('/categorias', [CategoriaController::class, 'store']);
 
     // Slider 
