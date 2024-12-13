@@ -22,6 +22,7 @@ class ProductoResource extends JsonResource {
             'dimensiones' => $this->dimensiones,
             'categoria_id' => $this->categoria_id,
             'image_url' => $this->image_url,
+            'producto_url' => $this->producto_url,
         ];
     }
 }

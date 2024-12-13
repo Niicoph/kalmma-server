@@ -17,6 +17,7 @@ class Producto extends Model{
         'espacio',
         'dimensiones',
         'categoria_id',
+        'producto_url',
     ];
 
     public function categoria(){
@@ -26,6 +27,6 @@ class Producto extends Model{
     public function imagenes() {
         return $this->hasMany(ProductoImagen::class);
     }
-   
+
 
 }

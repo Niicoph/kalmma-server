@@ -22,24 +22,26 @@ class ProductoRequest extends FormRequest
     public function rules(): array {
     $rules = [
         'name' => 'required|string|max:40',
-        'description' => 'required|string|max:255',
+        'description' => 'required|string',
         'SKU' => 'required|string|max:15',
         'image_url' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         'image_detailed_url' => 'sometimes|image|mimes:jpeg,png,jpg|max:2048',
         'espacio' => 'required|string|max:40',
         'dimensiones' => 'required|string|max:40',
         'categoria_id' => 'required|exists:categorias,id',
+        'producto_url' => 'required|string|max:255',
     ];
 
     if ($this->isMethod('put') || $this->isMethod('patch')) {
         $rules['name'] = 'sometimes|string|max:40';
-        $rules['description'] = 'sometimes|string|max:255';
+        $rules['description'] = 'sometimes|string';
         $rules['image_url'] = 'sometimes|image|mimes:jpeg,png,jpg|max:2048';
         $rules['image_detailed_url'] = 'sometimes|image|mimes:jpeg,png,jpg|max:2048';
         $rules['SKU'] = 'sometimes|string|max:15';
         $rules['espacio'] = 'sometimes|string|max:40';
         $rules['dimensiones'] = 'sometimes|string|max:40';
         $rules['categoria_id'] = 'sometimes|exists:categorias,id';
+        $rules['producto_url'] = 'sometimes|string|max:255';
     }
 
     return $rules;
@@ -65,6 +67,8 @@ class ProductoRequest extends FormRequest
             'image_detailed_url.image' => 'El archivo debe ser una imagen',
             'image_detailed_url.mimes' => 'El archivo debe ser de tipo: jpeg, png, jpg',
             'image_detailed_url.max' => 'El archivo no debe exceder los 2MB',
+            'producto_url.required' => 'La URL del producto es requerida',
+            'producto_url.max' => 'La URL del producto no debe exceder los 255 caracteres',
         ];
     }
 }
