@@ -28,13 +28,16 @@ use App\Http\Controllers\ImageController;
 Route::middleware('throttle:20,10')->group(function () {
     Route::post('/auth/validate', [AuthController::class, 'isAuth']);
     Route::post('/auth/login', [AuthController::class, 'login']);
-    // Route::post('/auth/register', [AuthController::class, 'register']); // eliminar en producción
+    Route::post('/auth/register', [AuthController::class, 'register']); // eliminar en producción
 });
 
 Route::get('/categorias', [CategoriaController::class, 'index']);
 Route::get('/productos', [ProductosController::class, 'index']);
 // ->middleware('cache.products');
-Route::get('/images/{type}/{filename}', [ImageController::class, 'showImage']);
+
+Route::middleware('throttle:images')->get('/images/{type}/{filename}', [ImageController::class, 'showImage']);
+
+
 Route::get('/productos/images/{id}', [ImageController::class, 'showImageProducto']);
 
 Route::get('/productos/{id}', [ProductosController::class, 'show']);
@@ -48,7 +51,7 @@ Route::middleware('auth.jwt')->group(function () {
     Route::post('/productos', [ProductosController::class, 'store']);
     Route::put('/productos/{id}', [ProductosController::class, 'update']);
     Route::delete('/productos/{id}', [ProductosController::class, 'destroy']);
-    
+
     // preguntas
     Route::post('/preguntas', [PreguntasController::class, 'store']);
     Route::put('/preguntas/{id}', [PreguntasController::class, 'update']);
@@ -57,10 +60,12 @@ Route::middleware('auth.jwt')->group(function () {
     // categorias
     Route::post('/categorias', [CategoriaController::class, 'store']);
 
-    // Slider 
+    // Slider
     Route::post('/slider/desktop', [SliderDesktopController::class, 'store']);
     Route::post('/slider/mobile', [SliderMobileController::class, 'store']);
-    
+    Route::delete('/slider/desktop/{id}', [SliderDesktopController::class, 'destroy']);
+    Route::delete('/slider/mobile/{id}', [SliderMobileController::class, 'destroy']);
+
     // usuarios
     Route::get('/usuarios', [UsuariosController::class, 'index']);
     Route::post('/usuarios', [UsuariosController::class, 'store'])

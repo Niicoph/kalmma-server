@@ -15,9 +15,8 @@ class ImageController extends Controller
         if (!File::exists($path)) {
             abort(404);
         }
-
         return response()->file($path, [
-            'Cache-Control' => 'public, max-age=31536000', 
+            'Cache-Control' => 'public, max-age=31536000',
         ]);
     }
     public function showImageProducto($id) {

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\SliderDesktopImagen;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Exception;
@@ -11,7 +12,10 @@ class SliderDesktopController extends Controller
 {
     public function index() {
         try {
-            $sliderImages = SliderDesktopImagen::all();
+            $cacheKey = 'slider_desktop';
+            $sliderImages =  Cache::remember($cacheKey, 60, function () {
+                return SliderDesktopImagen::all();
+            });
             if ($sliderImages->isEmpty()) {
                 return response()->json(['message' => 'No se encontraron imágenes cargadas'], 404);
             }
@@ -31,10 +35,24 @@ class SliderDesktopController extends Controller
             $sliderImage = SliderDesktopImagen::create([
                 'url' => $imagen_desktop_name,
             ]);
-    
+
             return response()->json($sliderImage, 201);
         } catch (Exception $e) {
             return response()->json(['error' => 'Error al agregar la imagen'], 500);
         }
+    }
+    public function destroy($id) {
+        $slider = SliderDesktopImagen::find($id);
+        if (!$slider) {
+            return response()->json(['message'=> 'image not found'], 404);
+        } else {
+            try {
+                $slider->delete();
+                return response()->json(['message'=> 'Imagen eliminada correctamente'], 200);
+            } catch (Exception $e) {
+                return response()->json(['message'=> 'server error'], 500);
+            }
+        }
+
     }
 }
