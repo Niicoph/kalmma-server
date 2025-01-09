@@ -28,7 +28,7 @@ class ProductosController extends Controller
         $query = Producto::query();
 
         if (empty($espacio) && empty($category) && empty($name)) {
-            $productos = $query->paginate(16);
+            $productos = $query->paginate(30);
         } else {
             if ($espacio) {
                 $query->where('espacio', $espacio);
@@ -40,7 +40,7 @@ class ProductosController extends Controller
                 $query->where('name', 'like', '%' . $name . '%');
             }
 
-            $productos = $query->paginate(16);
+            $productos = $query->paginate(30);
             if ($productos->isEmpty()) {
                 return response()->json([
                     'message' => 'No se han encontrado productos que coincidan con tu selección.'
@@ -126,7 +126,7 @@ class ProductosController extends Controller
 
     /**
      * Update the specified resource in storage.
-     * @param \App\Http\Requests\ProductoRequest $request 
+     * @param \App\Http\Requests\ProductoRequest $request
      * @param string $id
      * @return \Illuminate\Http\JsonResponse
      */

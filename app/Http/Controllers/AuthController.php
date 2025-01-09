@@ -25,14 +25,14 @@ class AuthController extends Controller
         try {
             $token = JWTAuth::attempt($credentials);
             if ($token) {
+                $user = auth()->user();
                 $encodedToken = base64_encode($token);
-                $response = response()->json(['message' => 'Logged in successfully'])
+                $response = response()->json(['message' => 'Logged in successfully' , 'user' => ['name' => $user->name]])
                     ->cookie('sessionId', $encodedToken, 0, '/', null, true, true);
             } else {
                 $response = response()->json(['error' => 'Credentials invalid'], 401);
             }
         } catch (\Exception $e) {
-            Log::error('Login error: ' . $e->getMessage());
             $response = response()->json(['error' => 'Login failed'], 500);
         }
         return $response;
@@ -106,15 +106,21 @@ class AuthController extends Controller
             $cookie = $request->cookie('sessionId');
             if (!$cookie) {
                 return response()->json(['error' => 'Unauthorized'], 401);
-            } else {
-                $decodedToken = base64_decode($cookie);
-                $auth = JWTAuth::setToken($decodedToken)->authenticate();
-                return $auth
-                    ? response()->json(['message' => 'Authenticated'])
-                    : response()->json(['error' => 'Unauthorized'], 401);
             }
+
+            $decodedToken = base64_decode($cookie);
+            $auth = JWTAuth::setToken($decodedToken)->authenticate();
+
+            if ($auth) {
+                return response()->json([
+                    'message' => 'Authenticated',
+                    'user' => ['name' => $auth->name]
+                ]);
+            }
+            return response()->json(['error' => 'Unauthorized'], 401);
         } catch (JWTException $e) {
-            return response()->json(['error' => 'token error'], 401);
+            return response()->json(['error' => 'Token error'], 401);
         }
     }
+
 }

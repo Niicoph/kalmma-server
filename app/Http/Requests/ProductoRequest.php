@@ -23,7 +23,7 @@ class ProductoRequest extends FormRequest
     $rules = [
         'name' => 'required|string|max:40',
         'description' => 'required|string',
-        'SKU' => 'required|string|max:15',
+        'SKU' => 'required|string|max:15|unique:productos',
         'image_url' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         'image_detailed_url' => 'sometimes|image|mimes:jpeg,png,jpg|max:2048',
         'espacio' => 'required|string|max:40',
@@ -55,6 +55,7 @@ class ProductoRequest extends FormRequest
             'description.max' => 'La descripción no debe exceder los 255 caracteres',
             'SKU.required' => 'El SKU es requerido',
             'SKU.max' => 'El SKU no debe exceder los 15 caracteres',
+            'SKU.unique' => 'El SKU ya se encuentra registrado',
             'espacio.required' => 'El espacio es requerido',
             'espacio.max' => 'El espacio no debe exceder los 40 caracteres',
             'dimensiones.required' => 'Las dimensiones son requeridas',

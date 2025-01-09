@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\SubCategoriesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\SliderDesktopController;
 use App\Http\Controllers\SliderMobileController;
 use App\Http\Controllers\ImageController;
+use App\Models\Subcategories;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,6 +34,7 @@ Route::middleware('throttle:20,10')->group(function () {
 });
 
 Route::get('/categorias', [CategoriaController::class, 'index']);
+Route::get('/subcategorias' , [SubCategoriesController::class , 'index']);
 Route::get('/productos', [ProductosController::class, 'index']);
 // ->middleware('cache.products');
 
@@ -51,7 +54,6 @@ Route::middleware('auth.jwt')->group(function () {
     Route::post('/productos', [ProductosController::class, 'store']);
     Route::put('/productos/{id}', [ProductosController::class, 'update']);
     Route::delete('/productos/{id}', [ProductosController::class, 'destroy']);
-
     // preguntas
     Route::post('/preguntas', [PreguntasController::class, 'store']);
     Route::put('/preguntas/{id}', [PreguntasController::class, 'update']);
@@ -59,6 +61,13 @@ Route::middleware('auth.jwt')->group(function () {
 
     // categorias
     Route::post('/categorias', [CategoriaController::class, 'store']);
+    Route::delete('/categorias/{id}', [CategoriaController::class, 'destroy']);
+    Route::put('/categorias/{id}', [CategoriaController::class, 'update']);
+
+    // subcategorias
+    Route::post('/subcategorias' , [SubCategoriesController::class , 'store']);
+    Route::delete('/subcategorias/{id}' , [SubCategoriesController::class , 'delete']);
+    Route::put('/subcategorias/{id}' , [SubCategoriesController::class , 'update']);
 
     // Slider
     Route::post('/slider/desktop', [SliderDesktopController::class, 'store']);

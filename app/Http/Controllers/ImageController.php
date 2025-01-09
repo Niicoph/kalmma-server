@@ -27,6 +27,4 @@ class ImageController extends Controller
             return response()->json($imagenesProducto);
         }
     }
-
-
 }
