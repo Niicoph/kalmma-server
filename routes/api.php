@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\SubCategoriesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -12,7 +11,8 @@ use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\SliderDesktopController;
 use App\Http\Controllers\SliderMobileController;
 use App\Http\Controllers\ImageController;
-use App\Models\Subcategories;
+use App\Http\Controllers\SubcategoriasController;
+use App\Http\Controllers\SubsubcategoriasController;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,7 +34,8 @@ Route::middleware('throttle:20,10')->group(function () {
 });
 
 Route::get('/categorias', [CategoriaController::class, 'index']);
-Route::get('/subcategorias' , [SubCategoriesController::class , 'index']);
+Route::get('/subcategorias' , [SubcategoriasController::class , 'index']);
+Route::get('/subsubcategorias' , [SubsubcategoriasController::class , 'index']);
 Route::get('/productos', [ProductosController::class, 'index']);
 // ->middleware('cache.products');
 
@@ -65,10 +66,14 @@ Route::middleware('auth.jwt')->group(function () {
     Route::put('/categorias/{id}', [CategoriaController::class, 'update']);
 
     // subcategorias
-    Route::post('/subcategorias' , [SubCategoriesController::class , 'store']);
-    Route::delete('/subcategorias/{id}' , [SubCategoriesController::class , 'delete']);
-    Route::put('/subcategorias/{id}' , [SubCategoriesController::class , 'update']);
+    Route::post('/subcategorias' , [SubcategoriasController::class , 'store']);
+    Route::delete('/subcategorias/{id}' , [SubcategoriasController::class , 'destroy']);
+    Route::put('/subcategorias/{id}' , [SubcategoriasController::class , 'update']);
 
+    // subsubcategorias
+    Route::post('/subsubcategorias' , [SubsubcategoriasController::class , 'store']);
+    Route::delete('/subsubcategorias/{id}' , [SubsubcategoriasController::class , 'destroy']);
+    Route::put('/subsubcategorias/{id}' , [SubsubcategoriasController::class , 'update']);
     // Slider
     Route::post('/slider/desktop', [SliderDesktopController::class, 'store']);
     Route::post('/slider/mobile', [SliderMobileController::class, 'store']);

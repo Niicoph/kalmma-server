@@ -88,6 +88,11 @@ class ProductosController extends Controller
                     $imagenes[] = new ProductoImagenResource($productoImagen);
                 }
             }
+            if (isset($validatedData['subsubcategorias'])) {
+                $product->subsubcategorias()->attach($validatedData['subsubcategorias']);
+            }
+
+
             return response()->json([
                 'message' => 'Producto agregado correctamente',
                 'producto' => new ProductoResource($product),

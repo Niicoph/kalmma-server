@@ -29,6 +29,8 @@ class ProductoRequest extends FormRequest
         'espacio' => 'required|string|max:40',
         'dimensiones' => 'required|string|max:40',
         'categoria_id' => 'required|exists:categorias,id',
+        'subsubcategorias' => 'sometimes|array',
+        'subsubcategorias.*' => 'exists:subsubcategorias,id',
         'producto_url' => 'required|string|max:255',
     ];
 

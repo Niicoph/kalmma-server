@@ -28,5 +28,9 @@ class Producto extends Model{
         return $this->hasMany(ProductoImagen::class);
     }
 
+    public function subsubcategorias() {
+        return $this->belongsToMany(Subsubcategoria::class, 'producto_sub_cats', 'producto_id', 'subsubcategoria_id');
+    }
+
 
 }
