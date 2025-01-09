@@ -11,6 +11,7 @@ use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\SliderDesktopController;
 use App\Http\Controllers\SliderMobileController;
 use App\Http\Controllers\ImageController;
+use App\Http\Controllers\ProductoSubCatController;
 use App\Http\Controllers\SubcategoriasController;
 use App\Http\Controllers\SubsubcategoriasController;
 
@@ -55,6 +56,10 @@ Route::middleware('auth.jwt')->group(function () {
     Route::post('/productos', [ProductosController::class, 'store']);
     Route::put('/productos/{id}', [ProductosController::class, 'update']);
     Route::delete('/productos/{id}', [ProductosController::class, 'destroy']);
+
+    // producto_sub_cat
+    Route::get('/productos_sub_cat' , [ProductoSubCatController::class , 'index']);
+
     // preguntas
     Route::post('/preguntas', [PreguntasController::class, 'store']);
     Route::put('/preguntas/{id}', [PreguntasController::class, 'update']);
