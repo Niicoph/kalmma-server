@@ -11,6 +11,7 @@ use App\Models\Producto;
 use App\Models\ProductoImagen;
 use Exception;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class ProductosController extends Controller
 {
@@ -20,36 +21,65 @@ class ProductosController extends Controller
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function index(Request $request)
-    {
-        $espacio = $request->query('espacio');
-        $category = $request->query('categoria_id');
-        $name = $request->query('name');
+{
+    $espacio = $request->query('espacio');
+    $category = $request->query('categoria_id');
+    $name = $request->query('name');
+    $subsubcategoria_id = $request->query('subsubcategoria_id');
 
-        $query = Producto::query();
+    // La tabla producto_sub_cat es la relación (producto_id / subsubcategoria_id);
+    // La tabla productos es la tabla principal de productos
+    $query = DB::table('productos')
+        ->leftJoin('producto_sub_cats', 'productos.id', '=', 'producto_sub_cats.producto_id')
+        ->select(
+            'productos.id',
+            'productos.SKU',
+            'productos.name',
+            'productos.description',
+            'productos.espacio',
+            'productos.dimensiones',
+            'productos.categoria_id',
+            'productos.image_url',
+            'productos.producto_url',
+            'producto_sub_cats.subsubcategoria_id'
+        );
 
-        if (empty($espacio) && empty($category) && empty($name)) {
-            $productos = $query->paginate(30);
-        } else {
-            if ($espacio) {
-                $query->where('espacio', $espacio);
-            }
-            if ($category) {
-                $query->where('categoria_id', $category);
-            }
-            if ($name) {
-                $query->where('name', 'like', '%' . $name . '%');
-            }
-
-            $productos = $query->paginate(30);
-            if ($productos->isEmpty()) {
-                return response()->json([
-                    'message' => 'No se han encontrado productos que coincidan con tu selección.'
-                ], 404);
-            }
-        }
-
-        return ProductoResource::collection($productos);
+    if ($espacio) {
+        $query->where('productos.espacio', $espacio);
     }
+    if ($category) {
+        $query->where('productos.categoria_id', $category);
+    }
+    if ($name) {
+        $query->where('productos.name', 'like', '%' . $name . '%');
+    }
+    if ($subsubcategoria_id) {
+        $query->where('producto_sub_cats.subsubcategoria_id', $subsubcategoria_id);
+    }
+
+    // Recuperamos los productos
+    $productos = $query->get();
+
+    // Agrupar los productos por ID y combinar los subsubcategorias en un arreglo
+    $productosAgrupados = $productos->groupBy('id')->map(function ($productosGrupo) {
+        // Tomamos el primer producto de cada grupo, ya que todos tienen el mismo ID
+        $producto = $productosGrupo->first();
+
+        // Creamos un arreglo de subsubcategorias
+        $producto->subsubcategorias = $productosGrupo->pluck('subsubcategoria_id')->unique()->values();
+
+        return $producto;
+    });
+
+    // Si no hay productos encontrados, devolvemos un mensaje de error
+    if ($productosAgrupados->isEmpty()) {
+        return response()->json([
+            'message' => 'No se han encontrado productos que coincidan con tu selección.'
+        ], 404);
+    }
+
+    return ProductoResource::collection($productosAgrupados);
+}
 
 
 
@@ -113,13 +143,39 @@ class ProductosController extends Controller
      * @param string $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function show(string $id)
-    {
+    public function show(string $id){
+    $query = DB::table('productos')
+        ->leftJoin('producto_sub_cats', 'productos.id', '=', 'producto_sub_cats.producto_id')
+        ->select(
+            'productos.id',
+            'productos.SKU',
+            'productos.name',
+            'productos.description',
+            'productos.espacio',
+            'productos.dimensiones',
+            'productos.categoria_id',
+            'productos.image_url',
+            'productos.producto_url',
+            DB::raw('GROUP_CONCAT(producto_sub_cats.subsubcategoria_id) as subsubcategorias')
+        )
+        ->where('productos.id', $id)
+        ->groupBy('productos.id', 'productos.SKU', 'productos.name', 'productos.description',
+                 'productos.espacio', 'productos.dimensiones', 'productos.categoria_id',
+                 'productos.image_url', 'productos.producto_url');
+
         try {
-            $product = Producto::find($id);
+            $producto = $query->first();
+            if (!$producto) {
+                return response()->json([
+                    'message' => 'Producto no encontrado',
+                ], 404);
+            }
+
+            $producto->subsubcategorias = $producto->subsubcategorias ? array_map('intval', explode(',', $producto->subsubcategorias)) : [];
+
             return response()->json([
                 'message' => 'Producto obtenido correctamente',
-                'producto' => new ProductoResource($product),
+                'producto' => new ProductoResource($producto)
             ], 200);
         } catch (Exception $e) {
             return response()->json([
@@ -128,6 +184,7 @@ class ProductosController extends Controller
             ], 500);
         }
     }
+
 
     /**
      * Update the specified resource in storage.

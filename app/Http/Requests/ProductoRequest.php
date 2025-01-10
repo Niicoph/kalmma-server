@@ -27,7 +27,7 @@ class ProductoRequest extends FormRequest
         'image_url' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         'image_detailed_url' => 'sometimes|image|mimes:jpeg,png,jpg|max:2048',
         'espacio' => 'required|string|max:40',
-        'dimensiones' => 'required|string|max:40',
+        'dimensiones' => 'required|string|max:200',
         'categoria_id' => 'required|exists:categorias,id',
         'subsubcategorias' => 'sometimes|array',
         'subsubcategorias.*' => 'exists:subsubcategorias,id',

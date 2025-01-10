@@ -15,7 +15,7 @@ class ProductoResource extends JsonResource {
     {
         return [
             'id' => $this->id,
-            'sku'  => $this->SKU,
+            'sku' => $this->SKU,
             'nombre' => $this->name,
             'descripcion' => $this->description,
             'espacio' => $this->espacio,
@@ -23,6 +23,8 @@ class ProductoResource extends JsonResource {
             'categoria_id' => $this->categoria_id,
             'image_url' => $this->image_url,
             'producto_url' => $this->producto_url,
+            'subsubcategorias' => $this->subsubcategorias ?? [],
         ];
     }
+
 }
