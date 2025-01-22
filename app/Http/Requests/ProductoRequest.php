@@ -19,37 +19,41 @@ class ProductoRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    public function rules(): array {
-    $rules = [
-        'name' => 'required|string|max:40',
-        'description' => 'required|string',
-        'SKU' => 'required|string|max:15|unique:productos',
-        'image_url' => 'required|image|mimes:jpeg,png,jpg|max:2048',
-        'image_detailed_url' => 'sometimes|image|mimes:jpeg,png,jpg|max:2048',
-        'espacio' => 'required|string|max:40',
-        'dimensiones' => 'required|string|max:200',
-        'categoria_id' => 'required|exists:categorias,id',
-        'subsubcategorias' => 'sometimes|array',
-        'subsubcategorias.*' => 'exists:subsubcategorias,id',
-        'producto_url' => 'required|string|max:255',
-    ];
+    public function rules(): array
+    {
+        $rules = [
+            'name' => 'required|string|max:40',
+            'description' => 'required|string',
+            'SKU' => 'required|string|max:15|unique:productos',
+            'image_url' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'image_detailed_url' => 'sometimes|image|mimes:jpeg,png,jpg|max:2048',
+            'espacio' => 'required|string|max:40',
+            'dimensiones' => 'required|string|max:200',
+            'categoria_id' => 'required|exists:categorias,id',
+            'subsubcategorias' => 'sometimes|array',
+            'subsubcategorias.*' => 'exists:subsubcategorias,id',
+            'producto_url' => 'required|string|max:255',
+        ];
 
-    if ($this->isMethod('put') || $this->isMethod('patch')) {
-        $rules['name'] = 'sometimes|string|max:40';
-        $rules['description'] = 'sometimes|string';
-        $rules['image_url'] = 'sometimes|image|mimes:jpeg,png,jpg|max:2048';
-        $rules['image_detailed_url'] = 'sometimes|image|mimes:jpeg,png,jpg|max:2048';
-        $rules['SKU'] = 'sometimes|string|max:15';
-        $rules['espacio'] = 'sometimes|string|max:40';
-        $rules['dimensiones'] = 'sometimes|string|max:40';
-        $rules['categoria_id'] = 'sometimes|exists:categorias,id';
-        $rules['producto_url'] = 'sometimes|string|max:255';
+        if ($this->isMethod('put') || $this->isMethod('patch')) {
+            $rules['name'] = 'sometimes|string|max:40';
+            $rules['description'] = 'sometimes|string';
+            $rules['image_url'] = 'sometimes|image|mimes:jpeg,png,jpg|max:2048';
+            $rules['image_detailed_url'] = 'sometimes|image|mimes:jpeg,png,jpg|max:2048';
+            $rules['SKU'] = 'sometimes|string|max:15';
+            $rules['espacio'] = 'sometimes|string|max:40';
+            $rules['dimensiones'] = 'sometimes|string|max:40';
+            $rules['categoria_id'] = 'sometimes|exists:categorias,id';
+            $rules['producto_url'] = 'sometimes|string|max:255';
+            $rules['subsubcategorias'] = 'sometimes|array';
+            $rules['subsubcategorias.*'] = 'exists:subsubcategorias,id';
+        }
+
+        return $rules;
     }
 
-    return $rules;
-}
-
-    public function messages() {
+    public function messages()
+    {
         return [
             'name.required' => 'El nombre es requerido',
             'name.max' => 'El nombre no debe exceder los 40 caracteres',

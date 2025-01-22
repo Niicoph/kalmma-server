@@ -21,65 +21,73 @@ class ProductosController extends Controller
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function index(Request $request)
-{
-    $espacio = $request->query('espacio');
-    $category = $request->query('categoria_id');
-    $name = $request->query('name');
-    $subsubcategoria_id = $request->query('subsubcategoria_id');
+    {
+        $espacio = $request->query('espacio');
+        $category = $request->query('categoria_id');
+        $name = $request->query('name');
+        $subsubcategoria_id = $request->query('subsubcategoria_id');
 
-    // La tabla producto_sub_cat es la relación (producto_id / subsubcategoria_id);
-    // La tabla productos es la tabla principal de productos
-    $query = DB::table('productos')
-        ->leftJoin('producto_sub_cats', 'productos.id', '=', 'producto_sub_cats.producto_id')
-        ->select(
-            'productos.id',
-            'productos.SKU',
-            'productos.name',
-            'productos.description',
-            'productos.espacio',
-            'productos.dimensiones',
-            'productos.categoria_id',
-            'productos.image_url',
-            'productos.producto_url',
-            'producto_sub_cats.subsubcategoria_id'
-        );
+        // Construcción de la consulta base
+        $query = DB::table('productos')
+            ->leftJoin('producto_sub_cats', 'productos.id', '=', 'producto_sub_cats.producto_id')
+            ->select(
+                'productos.id',
+                'productos.SKU',
+                'productos.name',
+                'productos.description',
+                'productos.espacio',
+                'productos.dimensiones',
+                'productos.categoria_id',
+                'productos.image_url',
+                'productos.producto_url',
+                'producto_sub_cats.subsubcategoria_id'
+            );
 
-    if ($espacio) {
-        $query->where('productos.espacio', $espacio);
+        if ($espacio) {
+            $query->where('productos.espacio', $espacio);
+        }
+        if ($category) {
+            $query->where('productos.categoria_id', $category);
+        }
+        if ($name) {
+            $query->where('productos.name', 'like', '%' . $name . '%');
+        }
+        if ($subsubcategoria_id) {
+            $query->where('producto_sub_cats.subsubcategoria_id', $subsubcategoria_id);
+        }
+
+        $productos = $query->paginate(34);
+
+        $productosAgrupados = collect($productos->items())->groupBy('id')->map(function ($productosGrupo) {
+            $producto = $productosGrupo->first();
+            $producto->subsubcategorias = $productosGrupo->pluck('subsubcategoria_id')->unique()->values();
+
+            return $producto;
+        });
+
+        if ($productosAgrupados->isEmpty()) {
+            return response()->json([
+                'message' => 'No se han encontrado productos que coincidan con tu selección.'
+            ], 404);
+        }
+
+        return ProductoResource::collection($productosAgrupados->values())
+            ->additional([
+                'meta' => [
+                    'current_page' => $productos->currentPage(),
+                    'last_page' => $productos->lastPage(),
+                    'per_page' => $productos->perPage(),
+                    'total' => $productos->total(),
+                ],
+                'links' => [
+                    'first' => $productos->url(1),
+                    'last' => $productos->url($productos->lastPage()),
+                    'prev' => $productos->previousPageUrl(),
+                    'next' => $productos->nextPageUrl(),
+                ],
+            ]);
     }
-    if ($category) {
-        $query->where('productos.categoria_id', $category);
-    }
-    if ($name) {
-        $query->where('productos.name', 'like', '%' . $name . '%');
-    }
-    if ($subsubcategoria_id) {
-        $query->where('producto_sub_cats.subsubcategoria_id', $subsubcategoria_id);
-    }
 
-    // Recuperamos los productos
-    $productos = $query->get();
-
-    // Agrupar los productos por ID y combinar los subsubcategorias en un arreglo
-    $productosAgrupados = $productos->groupBy('id')->map(function ($productosGrupo) {
-        // Tomamos el primer producto de cada grupo, ya que todos tienen el mismo ID
-        $producto = $productosGrupo->first();
-
-        // Creamos un arreglo de subsubcategorias
-        $producto->subsubcategorias = $productosGrupo->pluck('subsubcategoria_id')->unique()->values();
-
-        return $producto;
-    });
-
-    // Si no hay productos encontrados, devolvemos un mensaje de error
-    if ($productosAgrupados->isEmpty()) {
-        return response()->json([
-            'message' => 'No se han encontrado productos que coincidan con tu selección.'
-        ], 404);
-    }
-
-    return ProductoResource::collection($productosAgrupados);
-}
 
 
 
@@ -143,25 +151,34 @@ class ProductosController extends Controller
      * @param string $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function show(string $id){
-    $query = DB::table('productos')
-        ->leftJoin('producto_sub_cats', 'productos.id', '=', 'producto_sub_cats.producto_id')
-        ->select(
-            'productos.id',
-            'productos.SKU',
-            'productos.name',
-            'productos.description',
-            'productos.espacio',
-            'productos.dimensiones',
-            'productos.categoria_id',
-            'productos.image_url',
-            'productos.producto_url',
-            DB::raw('GROUP_CONCAT(producto_sub_cats.subsubcategoria_id) as subsubcategorias')
-        )
-        ->where('productos.id', $id)
-        ->groupBy('productos.id', 'productos.SKU', 'productos.name', 'productos.description',
-                 'productos.espacio', 'productos.dimensiones', 'productos.categoria_id',
-                 'productos.image_url', 'productos.producto_url');
+    public function show(string $id)
+    {
+        $query = DB::table('productos')
+            ->leftJoin('producto_sub_cats', 'productos.id', '=', 'producto_sub_cats.producto_id')
+            ->select(
+                'productos.id',
+                'productos.SKU',
+                'productos.name',
+                'productos.description',
+                'productos.espacio',
+                'productos.dimensiones',
+                'productos.categoria_id',
+                'productos.image_url',
+                'productos.producto_url',
+                DB::raw('GROUP_CONCAT(producto_sub_cats.subsubcategoria_id) as subsubcategorias')
+            )
+            ->where('productos.id', $id)
+            ->groupBy(
+                'productos.id',
+                'productos.SKU',
+                'productos.name',
+                'productos.description',
+                'productos.espacio',
+                'productos.dimensiones',
+                'productos.categoria_id',
+                'productos.image_url',
+                'productos.producto_url'
+            );
 
         try {
             $producto = $query->first();
@@ -231,6 +248,10 @@ class ProductosController extends Controller
                     $imagenes[] = new ProductoImagenResource($productoImagen);
                 }
             }
+            if (isset($validatedData['subsubcategorias'])) {
+                $product->subsubcategorias()->attach($validatedData['subsubcategorias']);
+            }
+
             return response()->json([
                 'message' => 'Producto actualizado correctamente',
                 'producto' => new ProductoResource($product),
@@ -269,6 +290,18 @@ class ProductosController extends Controller
                     'error' => $e->getMessage(),
                 ], 500);
             }
+        }
+    }
+    public function buscarPorSku(Request $request, $sku)
+    {
+        try {
+            $producto = Producto::where('sku', $sku)->first();
+            if ($producto) {
+                return response()->json(new ProductoResource($producto));
+            }
+            return response()->json(['message' => 'Producto no encontrado'], 404);
+        } catch (Exception $e) {
+            return response()->json(['message' => 'Error del servidor', 'error' => $e->getMessage()], 500);
         }
     }
 }

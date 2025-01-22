@@ -41,7 +41,7 @@ class CategoriaController extends Controller
             $categoria = Categoria::create($validatedData);
             return response()->json($categoria, 201);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al crear la categoría'], 500);
+            return response()->json(['error' => 'Error al crear la categoría' , $e], 500);
         }
     }
 

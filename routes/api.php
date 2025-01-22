@@ -35,8 +35,8 @@ Route::middleware('throttle:20,10')->group(function () {
 });
 
 Route::get('/categorias', [CategoriaController::class, 'index']);
-Route::get('/subcategorias' , [SubcategoriasController::class , 'index']);
-Route::get('/subsubcategorias' , [SubsubcategoriasController::class , 'index']);
+Route::get('/subcategorias', [SubcategoriasController::class, 'index']);
+Route::get('/subsubcategorias', [SubsubcategoriasController::class, 'index']);
 Route::get('/productos', [ProductosController::class, 'index']);
 // ->middleware('cache.products');
 
@@ -56,9 +56,10 @@ Route::middleware('auth.jwt')->group(function () {
     Route::post('/productos', [ProductosController::class, 'store']);
     Route::put('/productos/{id}', [ProductosController::class, 'update']);
     Route::delete('/productos/{id}', [ProductosController::class, 'destroy']);
+    Route::get('/productos/buscar/{sku}', [ProductosController::class, 'buscarPorSku']);
 
     // producto_sub_cat
-    Route::get('/productos_sub_cat' , [ProductoSubCatController::class , 'index']);
+    Route::get('/productos_sub_cat', [ProductoSubCatController::class, 'index']);
 
     // preguntas
     Route::post('/preguntas', [PreguntasController::class, 'store']);
@@ -71,14 +72,14 @@ Route::middleware('auth.jwt')->group(function () {
     Route::put('/categorias/{id}', [CategoriaController::class, 'update']);
 
     // subcategorias
-    Route::post('/subcategorias' , [SubcategoriasController::class , 'store']);
-    Route::delete('/subcategorias/{id}' , [SubcategoriasController::class , 'destroy']);
-    Route::put('/subcategorias/{id}' , [SubcategoriasController::class , 'update']);
+    Route::post('/subcategorias', [SubcategoriasController::class, 'store']);
+    Route::delete('/subcategorias/{id}', [SubcategoriasController::class, 'destroy']);
+    Route::put('/subcategorias/{id}', [SubcategoriasController::class, 'update']);
 
     // subsubcategorias
-    Route::post('/subsubcategorias' , [SubsubcategoriasController::class , 'store']);
-    Route::delete('/subsubcategorias/{id}' , [SubsubcategoriasController::class , 'destroy']);
-    Route::put('/subsubcategorias/{id}' , [SubsubcategoriasController::class , 'update']);
+    Route::post('/subsubcategorias', [SubsubcategoriasController::class, 'store']);
+    Route::delete('/subsubcategorias/{id}', [SubsubcategoriasController::class, 'destroy']);
+    Route::put('/subsubcategorias/{id}', [SubsubcategoriasController::class, 'update']);
     // Slider
     Route::post('/slider/desktop', [SliderDesktopController::class, 'store']);
     Route::post('/slider/mobile', [SliderMobileController::class, 'store']);
@@ -97,5 +98,4 @@ Route::middleware('auth.jwt')->group(function () {
     Route::put('/perfil/{id}', [ProfileController::class, 'update']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::post('/auth/refresh', [AuthController::class, 'refreshToken']);
-
 });
